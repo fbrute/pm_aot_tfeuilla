@@ -10,7 +10,8 @@ CREATE TABLE aot_hourly_average
    aot1020 decimal(7,6), 
    aot870 decimal(7,6),
    aot675 decimal(7,6),
-   aot440 decimal(7,6) 
+   aot440 decimal(7,6),
+   date   date 
 );   
 
 insert into aot_hourly_average (select year(date) as year, 
@@ -20,7 +21,8 @@ hour(subtime(time,"04:00:00")) as heure,
 avg(aot_1020) as aot1020,
 avg(aot_870) as aot870, 
 avg(aot_675) as aot675,
-avg(aot_440) as aot440
+avg(aot_440) as aot440,
+date
 from aotv15
 where date not in (select distinct date from ex_dates)
 and (year(date),month(date),day(date),hour(subtime(time,"04:00:00"))) 

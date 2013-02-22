@@ -7,13 +7,14 @@ CREATE TABLE pm_hourly_average
    day  smallint,
    julian_day  smallint,
    heure  smallint,
-   pm10 smallint
+   pm10 smallint,
+   date date
 );
 
 insert into pm_hourly_average (select year(datetime) as year, 
 month(datetime) as month, day(datetime) as day,
  cast(date_format(date(datetime),'%j') as decimal(5,0)) as julian_day , 
-hour(datetime) as heure , avg(pmptp) as pm10 
+hour(datetime) as heure ,  avg(pmptp) as pm10 ,date(datetime)
 from pm10
 where date(datetime) not in (select distinct date from ex_dates)
 and (year(datetime),month(datetime),day(datetime),hour(datetime)) 

@@ -1,0 +1,1 @@
+select * from aot_hourly_average

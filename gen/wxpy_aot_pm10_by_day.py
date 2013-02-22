@@ -1,7 +1,9 @@
 #-*- coding: iso-8859-1 -*-
 """
-On étudie la relation entre PM10 et épaisseur optique, notamment lors
-de la présence de poussières.
+On cherche à obtenir des données horaire d'épaisseur optiques 
+que nous pourrons comparer avec les courbes de rayonnement obtenues par le
+traitement des données obtenues par l'inra
+
 """
 
 import os, sys, string
@@ -14,11 +16,9 @@ from wx.py.filling import FillingFrame
 #from Numeric import *
 from numpy.oldnumeric import *
 
-#naotjours = unique(vaot[:,njour])
+from datefromday import datefromday
 
-#datamois = []
-#datamois = mlab.load("ndays.txt",comments="#")
-#datamois = ['Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'] 
+#naotjours = unique(vaot[:,njour])
 
 # Sélection encore plus fine :
 #naotjours  = [184,200,205,207,208,211,214,215,216]
@@ -63,9 +63,9 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         #setattr(self,'datajours', getattr(canvas.GetParent(),'datajours'))
         for name in dir(canvas.GetParent()):
 	    #print "name= :", name
-            if name in ["nyear","Config","datamois","vg0","vg0_2","year","month","day","nday","pm10","aot1020"]:
+            if name in ["nyear","Config","datajours","vg0","year","month","day","nday","heure","pm10","aot1020"]:
                 setattr(self,name,getattr(canvas.GetParent(),name))
-	
+        
        
 
         # for simplicity I'm going to reuse a bitmap from wx, you'll
@@ -81,41 +81,36 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         wx.EVT_TOOL(self, self.ON_PREVIOUS, self._on_previous)
         wx.EVT_TOOL(self, self.ON_NEXT, self._on_next)
         wx.EVT_TOOL(self, self.ON_LISTE, self._on_liste)
-	
-	self.initmois()
-        
+
+        self.initjour()
+
         self.draw()
 
-    def initmois(self):
-        """ Init months  """
-	self.dirmois={}
-
-	self.datamois = [3,4,5,6,7] 
-
-        for nmois in list(self.datamois):
-            self.dirmois[self.get_mois_en_clair(nmois)] = nmois
-            
-        #print "self.dirmois=", self.dirmois
-        keys_sort = self.dirmois.keys()
-        keys_sort.sort()
-
-	self.premmois = self.datamois[0]
-	self.dermois = self.datamois[len(self.datamois)-1]
-        #self.nmois = 0 
-        self.nmois = self.premmois 
-        #self.nyear = 2009 
-	#print "initmois::self.Config"
-	#print dir(self.Config)
-        #print self.Config.getint("anneesv15","anneedeb")
+    def initjour(self):
+        """ Init days  """
         self.nyear = self.Config.getint("anneesv15","anneedeb")
-	from datetime import datetime
-	#print "initmois at " + str(datetime.now())
-	#print "self.nyear"
-	#print self.nyear
+        self.datajours = self.canvas.GetParent().datajours
+	print "def initjour"
+	print "self.datajours =",self.datajours
+        self.dirjours ={}
 
-	#print "self.nmois"
-	#print self.nmois
-        self.compteurmois = 0 
+        for jour in self.datajours:
+            # pour retrouver le jour à partir de la date en clair 
+            self.dirjours[string.strip(datefromday(self.nyear,jour).getString())] = jour
+            #self.dirjours[self.get_jour_en_clair(njour)] = njour
+            
+        #print "initjour :: self.dirjours",self.dirjours
+        keys_sort = self.dirjours.keys()
+        keys_sort.sort()
+        #self.premjour = self.dirjours[keys_sort[0]]
+        #self.nyear = self.Config.getint("annee","annee")
+
+        self.premjour = self.datajours[0]
+        #self.derjour = self.dirjours[keys_sort[len(keys_sort)-1]]
+        self.derjour = self.datajours[len(self.datajours)-1] 
+        #self.derjour = 365 
+        self.njour = self.premjour 
+        self.compteurjour = 0 
  
 
     def get_jour_en_clair(self,njour):
@@ -124,60 +119,33 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         string.strip(datefromday(self.nyear,njour).getString())
         return string.strip(datefromday(self.nyear,njour).getString())
 
-    def get_mois_en_clair(self,nmois):
-	    """ Renvoyer le mois en texte à partir du n°"""
-	    if nmois == 1:
-		    return "Janvier"
-	    if nmois == 2:
-		    return "Fevrier"
-	    if nmois == 3:
-		    return "Mars"
-	    if nmois == 4:
-		    return "Avril"
-	    if nmois == 5:
-		    return "Mai"
-	    if nmois == 6:
-		    return "Juin"
-	    if nmois == 7:
-		    return "Juillet"
-	    if nmois == 8:
-		    return "Aout"
-	    if nmois == 9:
-		    return "Septembre"
-	    if nmois == 10:
-		    return "Octobre"
-	    if nmois == 11:
-		    return "Novembre"
-	    if nmois == 12:
-		    return "Decembre"
-
-
-
     def get_string_day(self,njour):
         from datefromday import datefromday
 	nweekday = datefromday(self.nyear,njour).get_day_of_week()
 	return nweekday
 
 
+
+
     def _on_liste(self, evt):
         """ On choisit le jour à tracer à partir d'une liste """
 
-        #self.datamois = self.canvas.GetParent().datamois
-	#print "_on_liste : self.datamois = %s",self.datamois
+        self.datajours = self.canvas.GetParent().datajours
 
         dlg = wx.SingleChoiceDialog(
-                self, 'Choisir un mois', 'Veuille choisir un mois',
-                [str(nmois) for nmois in list(self.datamois)],
+                self, 'Choisir un jour', 'Veuille choisir un jour',
+                [self.get_jour_en_clair(njour) for njour in list(self.datajours)],
                 wx.CHOICEDLG_STYLE
                 )
         if dlg.ShowModal() == wx.ID_OK:
             #njour = string.atof(dlg.GetStringSelection())
-            self.nmois = int(self.dirmois[dlg.GetStringSelection()])
+            self.njour = self.dirjours[dlg.GetStringSelection()]
+            self.date_en_clair = dlg.GetStringSelection()
             # Retrouver le rang du jour pour mettre à jour le compteur
             indice = 0
-            for mois in self.datamois:
-                if mois == self.nmois:
-                    self.compteurmois = indice 
+            for jour in self.datajours:
+                if jour == self.njour:
+                    self.compteurjour = indice 
                 indice +=1
         else:
             return
@@ -188,101 +156,105 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         """Select a day of data """
         return compress(equal(self.vg0[:,self.nday],nday),self.vg0,0)
 
-    def getvg0_month(self,nmonth):
-        """Select a month of data """
-        return compress(equal(self.vg0[:,self.month],nmonth),self.vg0,0)
-
-    def getvg0_2_month(self,nmonth):
-        """Select a month of data """
-        return compress(equal(self.vg0_2[:,self.month],nmonth),self.vg0_2,0)
-
-    def getvg0_year(self,nyear):
-        """Select a month of data """
-        return compress(equal(self.vg0[:,self.year],nyear),self.vg0,0)
-
-    def getvg0_2_year(self,nyear):
-        """Select a month of data """
-        return compress(equal(self.vg0_2[:,self.year],nyear),self.vg0_2,0)
-
-    def getvg0_2_year_month(self,nyear,nmonth):
-        """Select year and month of data """
-	vg0_2 = 0
-        vg0_2 = compress(equal(self.vg0_2[:,self.year],nyear),self.vg0_2,0)
-        return compress(equal(vg0_2[:,self.month],nmonth),vg0_2,0)
-
-    def getvg0_year_month(self,nyear,nmonth):
-        """Select year and month of data """
-	vg0 = 0
-        vg0 = compress(equal(self.vg0[:,self.year],nyear),self.vg0,0)
-        return compress(equal(vg0[:,self.month],nmonth),vg0,0)
-
-
     def draw(self,*args):
         """ Tracer les courbes en fonction de la date choisie """
         #print "draw ..."
 	self.vg0 = self.canvas.GetParent().vg0 
+	self.date_en_clair = self.get_jour_en_clair(self.njour) 
+	jour_en_clair = self.get_string_day(self.njour)
+	#jour_en_clair = " a definir" 
+	print "jour en clair =", jour_en_clair
         # get the axes
         ax = self.canvas.figure.axes[0]
 
-        #vg0n = self.getvg0_month(self.nmois)
-        #vg0n = self.getvg0_month(self.month)
+	print "draw::self.njour"
+	print self.njour
+        vg0n = self.getvg0n(self.njour)
+	print "draw::vg0n"
+	print vg0n
 
-	#self.nmois=5
-	#print self.nmois
-        #vg0n_2 = self.getvg0_2_month(self.nmois)
-        #vg0n = self.getvg0_month(self.nmois)
-        vg0n = self.getvg0_year_month(self.nyear,self.nmois)
-
-        #vg0n_2 = self.getvg0_2_month(self.nmois)
-        vg0n_2 = self.getvg0_2_year_month(self.nyear,self.nmois)
-                
-	#print "self.nyear=" + str(self.nyear)
-	#print "draw::self,self.nyear"
-	#print self, self.nyear
+        print "draw::vg0"
+	print self.vg0
+               
         ax.clear()
-        ax.set_xlabel('Jour',fontsize=14)
+        #ax2.set_title("Clair(bleu)/Moyen(magenta)/Pollue(rouge)/G0(noir) , le %s " % date_en_clair,fontsize=8)
+        ax.set_xlabel('Heure locale',fontsize=14)
+        #ax.set_xlabel('local hour',fontsize=14)
+        #ax2.set_ylabel('Rayonnement global',fontsize=8)
+        #ax.set_title('Rayonnement global (W/m2), le %s (jour %d)' % (self.date_en_clair, self.njour),fontsize=8)
+        #ax.set_title('Rayonnement global (W/m2), le %s ' % self.date_en_clair,fontsize=16)
 
-        ax.set_title('AOT*100 (vert) et PM10 (bleu) mois de %s, annee %d ' % (self.get_mois_en_clair(self.nmois), self.nyear),fontsize=16)
+        #ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %d, %s)' % (self.date_en_clair,self.njour,jour_en_clair),fontsize=16)
+
+        #ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %d, %s)' % ("jour","jour"),fontsize=16)
+        #ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %s, %s)' % ("jour","jour","jour"),fontsize=16)
+
+        #ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %d, %s)' % (self.date_en_clair,self.njour,jour_en_clair),fontsize=16)
+	date_en_clair =  str(int(vg0n[0,self.day])) + '/' +  str(int(vg0n[0,self.month])) + '/' +  str(int(vg0n[0,self.year]))
+        ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %d, %s)' % (date_en_clair,self.njour,jour_en_clair),fontsize=16)
+
+        # Print aot1020 
+        #ax.plot(vg0n[:,self.heure],vg0n[:,self.aot1020]*100,'g+')
+        #self.mpl_connect('button_press_event', onclick)
+	#if size(vg0n) > 0 :
+        ax.plot(vg0n[:,self.heure],vg0n[:,self.aot1020]*100,color='green', marker='o', markersize=12,linestyle='none')
+
+
+        #ax2.plot(vg0n[:,g0heure],vg0n[:,globM3tl2],'-g')
+        #ax2.plot(vg0n[:,g0heure],vg0n[:,globM3tl4],'-m')
+        #ax2.plot(vg0n[:,g0heure],vg0n[:,globM3tl6],'-r')
+        #ax2.plot(vg0n[:,g0heure],vg0n[:,globM1],'-k')
+
+        #ax.plot(vg0n[:,g0heure],vg0n[:,globM5tl2],'-m')
+        #ax2.plot(vg0n[:,g0tsv],vg0n[:,globM4tl2],'-g')
+        #ax2.plot(vg0n[:,g0heure],vg0n[:,globM5tl2],'-m')
+        #ax2.plot(vg0n[:,g0tsv],vg0n[:,globM5tl2],'-m')
 
         # Print PM10 
-	if size(vg0n_2) > 0:
-		ax.plot(vg0n_2[:,self.day],vg0n_2[:,self.pm10],color='blue', marker='o',
+	#if size(vg0n) > 0 :
+        ax.plot(vg0n[:,self.heure],vg0n[:,self.pm10],color='blue', marker='o',
 			markersize=12,linestyle='none')
 
-	# Print aot1020
-	if size(vg0n) > 0:
-		ax.plot(vg0n[:,self.day],vg0n[:,self.aot1020]*100,color='green', marker='o',
-			markersize=12,linestyle='none')
+        #ax.text(10,290,'-', fontsize=16,color='k')
+        #ax.text(10.2,280,'G0', fontsize=12,color='k')
+        #ax.text(10.2,280,'out of atmosphere global radiation', fontsize=12,color='k')
 
+        #ax.text(10.2,240,'Mesure', fontsize=12,color='b')
+        #ax.text(10,250,'-', fontsize=16,color='k')
+        #ax.text(10.2,240,'direct radiation (measurements)', fontsize=12,color='b')
 
-	ax.grid(b='true', which='major',color='black',linestyle='-',linewidth=0.5)
+        #ax.text(10,210,'-', fontsize=16,color='g')
+        #ax.text(10.2,200,'Modele ciel clair Hottel', fontsize=12,color='g')
+        #ax.text(10.2,200,'direct radiation for a clear day  (Hottel model)', fontsize=12,color='g')
 
-	ax.set_xticks(range(32)[1:32])
-
-
-
-	#print dir(ax)
+        #ax.text(10,170,'-', fontsize=16,color='m')
+        #ax.text(10.2,160,'global AOT*1000', fontsize=12,color='m')
+	cid = self.canvas.mpl_connect('button_press_event', self.onclick)
         self.canvas.draw()
 
+    def onclick(self,event):
+        print event.xdata
 
         
     def _on_previous(self, evt):
         """ Parcourir la liste """
-        if self.nmois == self.premmois:
+        if self.njour == self.premjour:
             return
         else:
-            self.compteurmois -= 1
-            self.nmois = self.datamois[self.compteurmois] 
+            #self.njour -= 1
+            self.compteurjour -= 1
+            self.njour = self.datajours[self.compteurjour] 
             self.draw()
         evt.Skip()
 
     def _on_next(self, evt):
         """ Parcourir la liste """
-        if self.nmois == self.dermois:
+        if self.njour == self.derjour:
             return
         else:
-            self.compteurmois += 1
-            self.nmois = self.datamois[self.compteurmois] 
+            #self.njour += 1
+            self.compteurjour += 1
+            self.njour = self.datajours[self.compteurjour] 
             self.draw()
         evt.Skip()
 
@@ -293,13 +265,14 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         self.canvas.print_figure(os.path.join(dirname,filename))
 
 
+       
+
 class ParmDialog(wx.Dialog):
     """ Parameters Dialog """
     def __init__(self,selframe):
         self.Config = selframe.Config
-	#print dir(selframe)
-        #self.InitConfig = selframe.InitConfig
         self.ReadConfig = selframe.ReadConfig
+        #self.nyear = selframe.nyear
         self.bChangeConfig = selframe.bChangeConfig
 
         wx.Dialog.__init__(self, None, -1, "Parameters", size = (400,400))
@@ -310,12 +283,10 @@ class ParmDialog(wx.Dialog):
         flagvalue = wx.ALL
         bordervalue = 5
 
-        #sizer.Add(wx.StaticText(self,-1,"Date de debut"),border=5)
-        #sizer.Add(wx.StaticText(self,-1,"First Date"),flag=wx.LEFT,border=bordervalue)
-        sizer.Add(wx.StaticText(self,-1,"Select year"),flag=wx.LEFT,border=bordervalue)
+	sizer.Add(wx.StaticText(self,-1,"Select year"),flag=wx.LEFT,border=bordervalue)
         self.dpcdeb = dpcdeb = wx.SpinCtrl(self, -1,"", (50, 30) )
         dpcdeb.SetRange(2005,2012)
-        sizer.Add(dpcdeb,flag=wx.RIGHT,border=bordervalue)
+	sizer.Add(dpcdeb,flag=wx.RIGHT,border=bordervalue)
 
         # Opérer une séparation
         sizer.Add((0,0))
@@ -361,8 +332,7 @@ class CanvasFrame(wx.Frame):
     
     def __init__(self):
         wx.Frame.__init__(self,None,-1,
-                         'wxpy_aot_pm10_by_month',size=(550,350))
-                         #'CanvasFrame',size=(550,350))
+                         'wxpy_aot_pm10_by_day.py',size=(550,350))
 
         self.SetBackgroundColour(wx.NamedColor("WHITE"))
 
@@ -394,6 +364,9 @@ class CanvasFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit, exit)
         self.Bind(wx.EVT_MENU, self.OnOptions, option)
 
+        #self.mpl_connect('button_press_event', onclick)
+        #self.Bind(wx.EVT_BUTTON, self.OnOk, okButton)
+
 
         self.SetMenuBar(menuBar)
 
@@ -415,6 +388,7 @@ class CanvasFrame(wx.Frame):
         wx.EVT_PAINT(self, self.OnPaint)        
 
         self.InitConfig()
+	print "CanvasFrame::init::call self.InitConfig()"
         self.bChangeConfig = 0 
         # Préparer les données
         self.PrepData()
@@ -443,8 +417,8 @@ class CanvasFrame(wx.Frame):
         self.SetSizer(self.sizer)
         self.Fit()
 
+
     def InitConfig(self):
-	""" Gestion des paramètres """
         # On regarde les paramètres initiaux (fichier pctas.ini)
         self.Config = ConfigParser.ConfigParser()
 	self.ReadConfig()
@@ -452,7 +426,6 @@ class CanvasFrame(wx.Frame):
     def ReadConfig(self):
 	""" Gestion des paramètres """
         self.Config.readfp(open(os.path.join(self.initdir,"params.ini")))
-
 
     def unique(self,a):
         """ Renvoie un vecteur contenant les valeurs uniques d'un vecteur  """
@@ -466,43 +439,93 @@ class CanvasFrame(wx.Frame):
 
     def PrepData(self):
         """ Prepare data before plotting """
+
+        self.nyear = self.Config.getint("anneesv15","anneedeb")
+	print "PrepData"
+	print self.nyear
+
+        # On crée une matrice avec les données déjà traitées par g0ascci.py
         dirtoconv = os.path.join("D:\\", "dvpt", "pm_aot_tfeuilla","gen")
         os.chdir(dirtoconv)
         # On récupère les entêtes (5ème ligne => indice 4)
         #vheaders = aaotlines[4].split(",") 
         # Valeurs des différentes colonnes
-        lstdata = """year month day nday aot1020 aot870 aot675 aot440""".split()
+        lstdata = """year month day nday heure pm10 aot1020 aot870 aot675 aot440""".split()
         indice=0
         # Chaque colonne reçoit son rang ...
-        #print lstdata
+        print lstdata
         for namevalue in lstdata:
             setattr(self, namevalue ,indice)
             indice+=1
 
-	# meme colonne pour aot1020 et pm10
-	self.pm10 = self.aot1020
-
         from numpy import *
         from pylab import *
         #self.vg0 = vg0 = load("g0.txt",comments="#", delimiter=",") plante le 08/01/2013
-        self.vg0 = vg0 = mlab.load("aotv15.txt",comments="#", delimiter=",")
-        self.vg0_2 = vg0_2 = mlab.load("pm.txt",comments="#", delimiter=",")
-
-
+        self.vg0 = vg0 = mlab.load("aot_pm_hourly.txt",comments="#", delimiter=",")
 
         # On récupère les paramètres en cours
         #if self.bChangeConfig : 
         #    self.Config.readfp(open(os.path.join(initdir,"pctas.ini")))
-	#print sys.path
 
         from dayfromdate import dayfromdate 
-        self.moisdeb = self.Config.get("mois","moisdeb")
-        self.moisfin = self.Config.get("mois","moisfin")
+        self.datedeb = self.Config.get("dates","datedeb")+'/'+str(self.nyear)
+	"print self.datedeb,self.datefin"
+	print self.datedeb
+
+        d,m,y= [int(value) for value in self.datedeb.split('/')]
+        self.jourdeb = dayfromdate(y,m,d).getnDay() 
+
+        self.datefin = self.Config.get("dates","datefin")+'/'+str(self.nyear)
+	print self.datefin
+
+        d,m,y= [int(value) for value in self.datefin.split('/')]
+        self.jourfin = dayfromdate(y,m,d).getnDay() 
+
+
+        # On limite les données à l'année choisie
+        vg0 = compress(equal(vg0[:,self.year],self.nyear),vg0,0)
+	# récupérer les numéros de jours 
+        #self.datajours = self.unique(self.vg0[:,self.nday])
+        self.datajours = self.unique(vg0[:,self.nday])
+	print "self.datajours, apres self.unique"
+	print self.datajours
+	print "len", len(self.datajours)
+        self.datajours = [njour for njour in self.datajours if njour >= self.jourdeb
+			and njour <= self.jourfin ]
+	self.datajours.sort()
+        # On limite les données aux jours choisis
+        print "self.jourdeb", self.jourdeb
+        print "self.jourfin", self.jourfin
+        vg0 = compress(greater(vg0[:,self.nday],self.jourdeb-1),vg0,0)
+        vg0 = compress(less(vg0[:,self.nday],self.jourfin+1),vg0,0)
+
+        #self.datajours = mlab.load("ndays.txt",comments="#")
+        #self.datajours = {} 
+        #self.datajours = range (self.jourdeb, self.jourfin + 1)
+	print "self.datajours"
+	print self.datajours
+
+        self.heuredeb = self.Config.getint("heures","heuredeb")
+        self.heurefin = self.Config.getint("heures","heurefin")
+
+        
+        # On limite les données aux heures choisies, déjà fait dans la requête sql
+	#vg0 = compress(greater(vg0[:,self.g0tsv],self.heuredeb),vg0,0)
+        #vg0 = compress(less(vg0[:,self.g0tsv],self.heurefin),vg0,0)
 
         self.vg0 = vg0
+	print "PrepData::vg0"
+	print vg0
+
+        # On exécute g0ascii qui prépare les données de l'inra
+        #if self.bChangeDates:
+        #    print "exécuter g0ascii.py"
+        #    os.chdir('c:\\pctas_tools')
+        #    os.system('g0ascii.py')
+
 
     def OnClicked(self,event):
-        #print "ruse"
+        print "ruse"
         dlg = wx.MessageDialog(self, str(evt.inaxes),
                                'A Message Box',
                                wx.OK | wx.ICON_INFORMATION
@@ -533,22 +556,21 @@ class CanvasFrame(wx.Frame):
 
     def OnOptions(self,event):
         """ Parameters Dialog Handler """
-        #self.ReadConfig()
         dialog = ParmDialog(self)
         result = dialog.ShowModal()
         if result == wx.ID_OK:
             # Update display
-            self.PrepData()
             self.ReadConfig()
-            self.toolbar.initmois()
+            self.PrepData()
+            self.toolbar.initjour()
             self.toolbar.draw()
         dialog.Destroy()
 
 
 
         
-class App(wx.App): 
-
+class App(wx.App):
+    
     def OnInit(self):
         'Create the main window and insert the custom frame'
         frame = CanvasFrame()
