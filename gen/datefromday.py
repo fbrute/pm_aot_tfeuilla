@@ -13,8 +13,9 @@ class datefromday:
         # Si nous sommes une année bissextile on ajuste le mois de février
         # selon wiképédia.fr, l'année est divisible par 4, pas par 100, mais par
         # 400.
-        if ((self.year % 4 == 0 and not self.year % 100) or self.year % 400 == 0) :
+        if ((self.year % 4 == 0 and not self.year % 100 == 0 ) or self.year % 400 == 0) :
             day_feb = 29
+            months_days = [31,day_feb,31,30,31,30,31,31,30,31,30,31]
         else :
             day_feb = 28
             months_days = [31,day_feb,31,30,31,30,31,31,30,31,30,31]

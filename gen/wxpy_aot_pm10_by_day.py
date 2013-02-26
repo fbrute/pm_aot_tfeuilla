@@ -82,6 +82,15 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         wx.EVT_TOOL(self, self.ON_NEXT, self._on_next)
         wx.EVT_TOOL(self, self.ON_LISTE, self._on_liste)
 
+	cid = self.canvas.mpl_connect('button_press_event', self.onclick)
+	cid = self.canvas.mpl_connect('key_press_event', self.onkey)
+
+	import MySQLdb
+
+	self.db = MySQLdb.connect("calamar.univ-ag.fr","dbmeteodb","dbmeteodb","dbmeteodb")
+
+	self.cursor = self.db.cursor()
+
         self.initjour()
 
         self.draw()
@@ -90,8 +99,8 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         """ Init days  """
         self.nyear = self.Config.getint("anneesv15","anneedeb")
         self.datajours = self.canvas.GetParent().datajours
-	print "def initjour"
-	print "self.datajours =",self.datajours
+	#print "def initjour"
+	#print "self.datajours =",self.datajours
         self.dirjours ={}
 
         for jour in self.datajours:
@@ -167,14 +176,14 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         # get the axes
         ax = self.canvas.figure.axes[0]
 
-	print "draw::self.njour"
-	print self.njour
+	#print "draw::self.njour"
+	#print self.njour
         vg0n = self.getvg0n(self.njour)
-	print "draw::vg0n"
-	print vg0n
+	#print "draw::vg0n"
+	#print vg0n
 
-        print "draw::vg0"
-	print self.vg0
+        #print "draw::vg0"
+	#print self.vg0
                
         ax.clear()
         #ax2.set_title("Clair(bleu)/Moyen(magenta)/Pollue(rouge)/G0(noir) , le %s " % date_en_clair,fontsize=8)
@@ -190,8 +199,10 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         #ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %s, %s)' % ("jour","jour","jour"),fontsize=16)
 
         #ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %d, %s)' % (self.date_en_clair,self.njour,jour_en_clair),fontsize=16)
-	date_en_clair =  str(int(vg0n[0,self.day])) + '/' +  str(int(vg0n[0,self.month])) + '/' +  str(int(vg0n[0,self.year]))
-        ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %d, %s)' % (date_en_clair,self.njour,jour_en_clair),fontsize=16)
+	self.date = "%02d/%02d/%04d" % (int(vg0n[0,self.day]) , int(vg0n[0,self.month]) , int(vg0n[0,self.year]))
+	#self.date=  str(int(vg0n[0,self.day])) + '/' +  str(int(vg0n[0,self.month])) + '/' +  str(int(vg0n[0,self.year]))
+
+        ax.set_title('AOT*100 (vert) et PM10 (bleu) le %s (jour %d, %s)' % (self.date,self.njour,jour_en_clair),fontsize=16)
 
         # Print aot1020 
         #ax.plot(vg0n[:,self.heure],vg0n[:,self.aot1020]*100,'g+')
@@ -229,11 +240,64 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 
         #ax.text(10,170,'-', fontsize=16,color='m')
         #ax.text(10.2,160,'global AOT*1000', fontsize=12,color='m')
-	cid = self.canvas.mpl_connect('button_press_event', self.onclick)
+	#cid = self.canvas.mpl_connect('button_press_event', self.onclick)
         self.canvas.draw()
 
     def onclick(self,event):
-        print event.xdata
+	""" Ajouter et retirer la date et l'heure à ex_date_hour 
+	    double click gauche pour ajouter, double click droit pour supprimer"""
+	if event.dblclick :
+	    date = self.date
+	    heure = round(event.xdata)
+	    annee = int(str(date[6:]))
+	    mois = int(str(date[3:][:2]))
+	    jour = int(str(date[0:][:2]))
+	    success_message = ''
+	    sql = ''
+	    if event.button == 1:	
+	        sql = "INSERT INTO ex_date_hour VALUES (%d,%d,%d,%d)" % (annee, mois, jour, heure) 
+	        success_message = "Date du %s a %dh ajoutee a ex_date_hour" % (date, heure)
+
+	    if event.button == 3:	
+	        sql = "DELETE FROM ex_date_hour WHERE (year,month,day,hour) = (%d,%d,%d,%d)" % (annee, mois, jour, heure) 
+	        success_message = "Date du %s a %dh supprimee de ex_date_hour" % (date, heure)
+
+	    try:
+	        self.cursor.execute(sql)
+		self.db.commit()
+	        print success_message 
+	    except e:
+		db.lrollback()
+		print e
+		#print "requete non executee"
+
+
+    def onkey(self,event):
+	""" Ajouter ou supprimer la date à la table ex_dates """
+	#print dir(event)
+	evt = event.key
+	if evt == 'ctrl+d' or evt == 'ctrl+s':
+	    date = self.date
+	    date_mysql = str(date[6:]) + '-' + str(date[3:][:2])+ '-' +str(date[0:][:2])
+	    print date_mysql
+	    success_message = ''
+
+            if evt == 'ctrl+d':	
+	        sql = "INSERT INTO ex_dates VALUES ('%s')" % date_mysql
+	        success_message = "Date du %s ajoutee a ex_dates" % date
+	    if evt == 'ctrl+s' :
+	        sql = "DELETE FROM ex_dates WHERE date = '%s'" % date_mysql
+	        success_message = "Date du %s supprimee de ex_dates" % date
+
+	    try:
+	        self.cursor.execute(sql)
+		self.db.commit()
+	        print success_message 
+	    except e:
+		db.rollback()
+		print e
+		#print "requete non executee"
+
 
         
     def _on_previous(self, evt):
@@ -453,7 +517,7 @@ class CanvasFrame(wx.Frame):
         lstdata = """year month day nday heure pm10 aot1020 aot870 aot675 aot440""".split()
         indice=0
         # Chaque colonne reçoit son rang ...
-        print lstdata
+        #print lstdata
         for namevalue in lstdata:
             setattr(self, namevalue ,indice)
             indice+=1
@@ -487,9 +551,9 @@ class CanvasFrame(wx.Frame):
 	# récupérer les numéros de jours 
         #self.datajours = self.unique(self.vg0[:,self.nday])
         self.datajours = self.unique(vg0[:,self.nday])
-	print "self.datajours, apres self.unique"
-	print self.datajours
-	print "len", len(self.datajours)
+	#print "self.datajours, apres self.unique"
+	#print self.datajours
+	#print "len", len(self.datajours)
         self.datajours = [njour for njour in self.datajours if njour >= self.jourdeb
 			and njour <= self.jourfin ]
 	self.datajours.sort()
@@ -503,7 +567,7 @@ class CanvasFrame(wx.Frame):
         #self.datajours = {} 
         #self.datajours = range (self.jourdeb, self.jourfin + 1)
 	print "self.datajours"
-	print self.datajours
+	#print self.datajours
 
         self.heuredeb = self.Config.getint("heures","heuredeb")
         self.heurefin = self.Config.getint("heures","heurefin")
@@ -514,8 +578,8 @@ class CanvasFrame(wx.Frame):
         #vg0 = compress(less(vg0[:,self.g0tsv],self.heurefin),vg0,0)
 
         self.vg0 = vg0
-	print "PrepData::vg0"
-	print vg0
+	#print "PrepData::vg0"
+	#print vg0
 
         # On exécute g0ascii qui prépare les données de l'inra
         #if self.bChangeDates:
@@ -525,7 +589,7 @@ class CanvasFrame(wx.Frame):
 
 
     def OnClicked(self,event):
-        print "ruse"
+        #print "ruse"
         dlg = wx.MessageDialog(self, str(evt.inaxes),
                                'A Message Box',
                                wx.OK | wx.ICON_INFORMATION
