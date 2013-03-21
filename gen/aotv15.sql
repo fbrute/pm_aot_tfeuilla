@@ -26,7 +26,7 @@ date
 from aotv15
 where date not in (select distinct date from ex_dates)
 and (year(date),month(date),day(date),hour(subtime(time,"04:00:00"))) 
-not in (select year,month, day,  hour from ex_date_hour)
+not in (select distinct year,month, day,  hour from ex_date_hour)
 and subtime(time,"04:00:00") between 8 and 16
 and aot_1020 < 1 and aot_870 < 1 and aot_675 < 1 
 and aot_440 < 1 

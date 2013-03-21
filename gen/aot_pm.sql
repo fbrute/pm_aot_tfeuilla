@@ -14,10 +14,10 @@ CREATE TABLE aot_pm_hourly
 
 insert into aot_pm_hourly (select aot.year,aot.month,aot.day, 
 aot.julian_day, aot.heure,
- pm.pm10 , aot.aot1020 from aot_hourly_average as aot, pm_hourly_average as pm
-where aot.date not in (select date from ex_dates)
+ pm.pm10 , aot.aot1020, aot.date from aot_hourly_average as aot, pm_hourly_average as pm
+where aot.date not in (select distinct date from ex_dates)
 and (aot.year,aot.month, aot.day, aot.heure) not in 
-(select year, month, day, hour from ex_date_hour)
+(select distinct year, month, day, hour from ex_date_hour)
 and(aot.year,aot.month,aot.day,aot.heure) = 
 (pm.year,pm.month,pm.day,pm.heure)
 order by aot.year,aot.month,aot.day,aot.heure);

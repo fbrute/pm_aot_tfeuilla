@@ -1,1 +1,1 @@
-select * from aot_pm_hourly
+select year,month,day,julian_day,heure,pm10,aot1020 from aot_pm_hourly

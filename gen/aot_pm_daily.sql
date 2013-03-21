@@ -1,1 +1,1 @@
-select * from aot_pm_daily
+select year,month,day,julian_day,pm10,aot1020 from aot_pm_daily

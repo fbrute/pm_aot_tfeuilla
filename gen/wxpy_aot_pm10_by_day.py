@@ -87,7 +87,8 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 
 	import MySQLdb
 
-	self.db = MySQLdb.connect("calamar.univ-ag.fr","dbmeteodb","dbmeteodb","dbmeteodb")
+	#self.db = MySQLdb.connect("calamar.univ-ag.fr","dbmeteodb","dbmeteodb","dbmeteodb")
+	self.db = MySQLdb.connect("localhost","dbmeteodb","dbmeteodb","dbmeteodb")
 
 	self.cursor = self.db.cursor()
 

@@ -1,0 +1,46 @@
+drop table if exists aot_pm_hourly;
+CREATE TABLE aot_pm_hourly
+  (
+   year   smallint,
+   month  smallint,
+   day  smallint,
+   julian_day  smallint,
+   heure  smallint,
+   pm10 smallint,
+   aot1020 decimal(7,6),
+   date date
+);   
+
+
+insert into aot_pm_hourly (select aot.year,aot.month,aot.day, 
+aot.julian_day, aot.heure,
+ pm.pm10 , aot.aot1020, aot.date from aot_hourly_average as aot, pm_hourly_average as pm
+where aot.year not in (2005,2011)
+or (aot.year = 2006 and aot.month between 5 and 12 )
+or (aot.year = 2007 and aot.month between 3 and 7 )
+or (aot.year = 2009 and aot.month between 3 and 7 )
+or (aot.year = 2010 and aot.month between 5 and 9 )
+or (aot.year = 2012 and aot.month between 1 and 7 )
+and aot.date not in (select distinct date from ex_dates)
+ and (aot.year,aot.month, aot.day, aot.heure) not in 
+(select distinct year, month, day, hour from ex_date_hour)
+and(aot.year,aot.month,aot.day,aot.heure) = 
+(pm.year,pm.month,pm.day,pm.heure)
+order by aot.year,aot.month,aot.day,aot.heure);
+
+drop table if exists aot_pm_daily;
+CREATE TABLE aot_pm_daily
+  (
+   year   smallint,
+   month  smallint,
+   day  smallint,
+   julian_day  smallint,
+   pm10 smallint,
+   aot1020 decimal(7,6)
+);  
+
+insert into aot_pm_daily (select year, month, day, julian_day,  
+avg(pm10) as pm10 , avg(aot1020) as aot1020
+from aot_pm_hourly
+group by year,month,day
+order by year,month,day)

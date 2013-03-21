@@ -90,7 +90,8 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         """ Init months  """
 	self.dirmois={}
 
-	self.datamois = [3,4,5,6,7] 
+	self.datamois = [1,2,3,4,5,6,7,8,9,10,11,12] 
+	#self.datamois = [3,4,5,6,7] 
 
         for nmois in list(self.datamois):
             self.dirmois[self.get_mois_en_clair(nmois)] = nmois

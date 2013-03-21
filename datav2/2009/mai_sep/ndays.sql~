@@ -1,0 +1,12 @@
+select distinct julian_day from 
+(select  distinct cast(date_format(date(datetime),'%j') 
+as decimal(5,0)) as julian_day from pm10
+where year(datetime) = 2010
+and date(datetime) >= '2010-05-01'
+
+union select distinct floor(julian_day) from aot
+where year(date) = 2010
+and date >= '2010-05-01'
+) as join_aot_pm_dates
+
+order by julian_day

@@ -1,0 +1,27 @@
+drop table if exists pm_hourly_average_2009_v2;
+
+CREATE TABLE pm_hourly_average_2009_v2
+  (
+   year   smallint,
+   month  smallint,
+   day  smallint,
+   julian_day  smallint,
+   heure  smallint,
+   pm10 smallint
+);
+
+insert into pm_hourly_average_2009_v2 (select year(datetime) as year, 
+month(datetime) as month, day(datetime) as day,
+ cast(date_format(date(datetime),'%j') as decimal(5,0)) as julian_day , 
+hour(datetime) as heure , avg(pmptp) as pm10 
+from pm10
+where year(date(datetime)) = 2009 
+and date(datetime) >= '2009-05-01'
+and date(datetime) not in (select distinct date from ex_dates_2009_v2)
+and (year(datetime),month(datetime),day(datetime),hour(datetime)) 
+not in (select year,month, day, hour from ex_date_hour_2009_v2)
+and pmptp > 0 
+group by date(datetime),hour(datetime)
+order by date(datetime),hour(datetime));
+
+select * from pm_hourly_average_2009_v2 order by year,month,day,heure
