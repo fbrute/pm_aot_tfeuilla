@@ -104,9 +104,9 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         self.ntyear, self.ntmonth, self.ntday,self.ntjul_day, self.ntpm10,self.ntaot1020 = range(6) 
         self.tot_array_data3 = mlab.load("aot_pm_daily.txt",comments="#", delimiter=",")
 	# Année à garder
-	self.nyear = 2006
+	self.nyear = 2007
 	# Mois à garder : mars à juillet
-	self.nt_month_deb = 5
+	self.nt_month_deb = 1
 	self.nt_month_fin = 12 
 
 
@@ -167,8 +167,11 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         vpm10 = self.aot_pm[:,self.ntpm10]
         #ax.plot(self.tot_array_data3[:,self.ntaot1020]*100,self.tot_array_data3[:,self.ntpm10],'m.')
 	#if size(vaot1020)==0  or  size(vpm10)==0
+	if size(vaot1020) == 0 : return
 	ax.plot(vaot1020,vpm10,'m.')
-	print "size(self.tot.array_data3))", len(self.aot_pm[:,self.ntaot1020])
+	#print "size(self.tot.array_data3))", len(self.aot_pm[:,self.ntaot1020])
+	print "size(self.tot.array_data3))", size(self.tot_array_data3) 
+	print "size(vaot1020)", size(vaot1020) 
 
 	from scipy import stats
         svaot1020 = sort(vaot1020)
