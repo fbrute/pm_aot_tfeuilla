@@ -1,4 +1,8 @@
+/*CREATE INDEX idx_date ON pm10 (datetime);*/
+
 drop table if exists pm_hourly_average;
+
+/*delete from pm_hourly_average;*/
 
 CREATE TABLE pm_hourly_average
   (
@@ -10,6 +14,9 @@ CREATE TABLE pm_hourly_average
    pm10 smallint,
    date date
 );
+
+CREATE INDEX idx_date  ON pm_hourly_average (date);
+CREATE INDEX idx_date2 ON pm_hourly_average (year,month,day);
 
 insert into pm_hourly_average (select year(datetime) as year, 
 month(datetime) as month, day(datetime) as day,
@@ -23,7 +30,7 @@ and pmptp > 0
 group by date(datetime),hour(datetime)
 order by date(datetime),hour(datetime));
 
-select year, month, day, julian_day,  avg(pm10) as pm10 
+/*select year, month, day, julian_day,  avg(pm10) as pm10 
 from pm_hourly_average
 group by year,month,day
-order by year,month,day
+order by year,month,day*/

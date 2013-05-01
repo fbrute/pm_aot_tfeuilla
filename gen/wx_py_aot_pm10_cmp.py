@@ -104,7 +104,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         self.ntyear, self.ntmonth, self.ntday,self.ntjul_day, self.ntpm10,self.ntaot1020 = range(6) 
         self.tot_array_data3 = mlab.load("aot_pm_daily.txt",comments="#", delimiter=",")
 	# Année à garder
-	self.nyear = 2007
+	self.nyear = 2006
 	# Mois à garder : mars à juillet
 	self.nt_month_deb = 1
 	self.nt_month_fin = 12 
@@ -172,20 +172,21 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 	#print "size(self.tot.array_data3))", len(self.aot_pm[:,self.ntaot1020])
 	print "size(self.tot.array_data3))", size(self.tot_array_data3) 
 	print "size(vaot1020)", size(vaot1020) 
+	ax.x = 40
 
 	from scipy import stats
         svaot1020 = sort(vaot1020)
 	svpm10 = -sort(-vpm10)
         pente, origine, coeffreg = stats.linregress(vaot1020,vpm10)[:3]
-	ax.text(20,40,("nombre de points = %d" % len(vaot1020)))
-	ax.text(20,20,("origine = %f" % origine))
-	ax.text(20,10,("coeffreg = %f" % coeffreg))
+	ax.text(ax.x,40,("nombre de points = %d" % len(vaot1020)))
+	ax.text(ax.x,20,("origine = %f" % origine))
+	ax.text(ax.x,10,("coeffreg = %f" % coeffreg))
 
         interlinear = pente*svaot1020 + origine
         ax.plot(svaot1020,interlinear,'-b')
 
         pente = pente * 100.0
-	ax.text(20,30,("pente = %f" % pente))
+	ax.text(ax.x,30,("pente = %f" % pente))
         ax.set_title("PM10 fonction de l' AOT1020*100 (%d,v15 apres selection)" % self.nyear,fontsize=8)
 	print "pente=%f" % pente
 	print "coeff=%f" % coeffreg 

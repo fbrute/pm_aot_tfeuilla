@@ -88,7 +88,9 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 	import MySQLdb
 
 	#self.db = MySQLdb.connect("calamar.univ-ag.fr","dbmeteodb","dbmeteodb","dbmeteodb")
-	self.db = MySQLdb.connect("localhost","dbmeteodb","dbmeteodb","dbmeteodb")
+	# localhost, alias for 127.0.0.1(default in mysql), marked in c:\windows\system32\drivers\etc
+	# "127.0.0.1" works too, localhost
+	self.db = MySQLdb.connect(host="localhost",user="dbmeteodb",passwd="dbmeteodb",db="dbmeteodb")
 
 	self.cursor = self.db.cursor()
 
