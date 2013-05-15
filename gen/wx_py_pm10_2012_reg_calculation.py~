@@ -102,12 +102,12 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         tot_array_data3 = array([])
         # Colonnes du tableau, tot_array_data
         self.ntyear, self.ntmonth, self.ntday,self.ntjul_day, self.ntpm10,self.ntaot1020 = range(6) 
-        self.tot_array_data3 = mlab.load("aot_pm_daily.txt",comments="#", delimiter=",")
+        self.tot_array_data3 = mlab.load("aot_pm_daily_2012.txt",comments="#", delimiter=",")
 	# Année à garder
-	self.nyear = 2010
+	self.nyear = 2012
 	# Mois à garder : mars à juillet
-	self.nt_month_deb = 5
-	self.nt_month_fin = 9 
+	self.nt_month_deb = 1
+	self.nt_month_fin = 12 
 
 
     def get_jour_en_clair(self,njour):
@@ -141,62 +141,93 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         vect_tmp = compress(equal(vector[:,colyear],nyear),vector,0)
         vect_tmp = compress(greater_equal(vect_tmp[:,colmonth],float(moisdeb)), vect_tmp,0) 
         vect_tmp = compress(less_equal(vect_tmp[:,colmonth],float(moisfin)), vect_tmp,0) 
+
 	return vect_tmp
 
 
     def draw(self,*args):
         """ Tracer les courbes en fonction de la date choisie """
-        #self.date_en_clair = self.get_jour_en_clair(self.njour) 
-        # get the axes
-        ax = self.canvas.figure.axes[0]
-        #print dir(ax)
-        #ax.set_title("Moyenne AOT (Angstrom) et Global Infrarouge (kW/m2)",fontsize=8)
-        # 2ème figure
-        #ax2 = self.canvas.figure.axes[1]
-        # 3ème figure
-        #ax3 = self.canvas.figure.axes[2]
-
-
-        #self.canvas.figure.clf()
-        ax.clear()
-	# On sélectionne les données pour une année
+       	# On sélectionne les données pour une année
 	self.aot_pm = []
         self.aot_pm = self.get_aot_pm_year_months(self.tot_array_data3,self.nyear)
         # On trace l'AOT global en fonction de l'AOT1020
-        vaot1020 = self.aot_pm[:,self.ntaot1020]*100
-        vpm10 = self.aot_pm[:,self.ntpm10]
-        #ax.plot(self.tot_array_data3[:,self.ntaot1020]*100,self.tot_array_data3[:,self.ntpm10],'m.')
-	#if size(vaot1020)==0  or  size(vpm10)==0
-	if size(vaot1020) == 0 : return
-	ax.plot(vaot1020,vpm10,'m.')
-	#print "size(self.tot.array_data3))", len(self.aot_pm[:,self.ntaot1020])
-	print "size(self.tot.array_data3))", size(self.tot_array_data3) 
-	print "size(vaot1020)", size(vaot1020) 
-	ax.x = 40
+        vaot1020 = self.vaot1020 = self.aot_pm[:,self.ntaot1020]
+        vpm10 = self.vpm10 = self.aot_pm[:,self.ntpm10]
+	print "size(vpm10)=",size(vpm10)
 
 	from scipy import stats
         svaot1020 = sort(vaot1020)
 	svpm10 = -sort(-vpm10)
         pente, origine, coeffreg = stats.linregress(vaot1020,vpm10)[:3]
-	ax.text(ax.x,40,("nombre de points = %d" % len(vaot1020)))
-	ax.text(ax.x,20,("origine = %f" % origine))
-	ax.text(ax.x,10,("coeffreg = %f" % coeffreg))
 
-        interlinear = pente*svaot1020 + origine
-        ax.plot(svaot1020,interlinear,'-b')
+        interlinear = self.interlinear = pente*svaot1020 + origine
 
-        pente = pente * 100.0
-	ax.text(ax.x,30,("pente = %f" % pente))
-        ax.set_title("PM10 fonction de l' AOT1020*100 (%d,v15 apres selection)" % self.nyear,fontsize=8)
+	from numpy import mean, median
+	print "moyenne de vaot1020 calcule :", mean(interlinear)
+	print "mediane de vaot1020 calcule :", median(interlinear)
+	print "mode de vaot1020 calcule :", stats.mstats.mode(interlinear)
+
+        #ax.plot(svaot1020,interlinear,'-b')
+        #ax.plot(svaot1020,interlinear,'*m')
+
+        #pente = pente * 100.0
+	#ax.text(ax.x,30,("pente = %f" % pente))
+        #ax.set_title("PM10 fonction de l' AOT1020*100 (%d,v15 apres selection)" % self.nyear,fontsize=8)
 	print "pente=%f" % pente
 	print "coeff=%f" % coeffreg 
 	print "origine=%f" % origine 
+	#self.draw_bar_distribution()
+	self.draw_bar_frequency()
+
+    def draw_bar_frequency(self, *args):
+	vpm10= self.interlinear
+        import pylab as plt
+	#gaussian_numbers = normal(size=1000)
+	#print gaussian_numbers
+	bins_values = range(0,105,5)
+	print "bins_values=",bins_values
+	#bins_values = [0,5],[5,10],[10,15],[15,20],[20,25],[25,30],[30,35],[35,40],[40,45],[45,50],[50,55],[55,60],
+	#[60,65],[65,70],[70,75],[75,80],[80,85],[85,90],[95,100]
+        #plt.hist(vpm10,bins=bins_values,normed=1,histtype='bar')
+        #plt.hist(vpm10,bins=bins_values)
+        #n,bins,patches = plt.hist(vpm10,bins=bins_values)
+	n,xout,patches = plt.hist(vpm10,bins=bins_values)
+	#n,xout,patches = plt.hist(vpm10,bins=20)
+	print "n=" ,n, "sum=",sum(n), "len(n)=", len(n)
+	print "xout=" ,xout, "len(xout)=", len(xout)
+        print [float(number)/sum(n) for number in n]
+	plt.figure()
+	plt.bar(xout[:20],[float(number)/sum(n) for number in n],width=5)
+	#plt.bar(bins_values,[float(number)/sum(n) for number in n],width=5)
+	#print "patches =" , [patch for patch in patches]
+        plt.title("Histogramme PM10 Calcul - 2012")
+        plt.xlabel("Valeur")
+        plt.ylabel("Frequence")
+        plt.show()
+
+    def draw_bar_distribution(self, *args):
+	vpm10 = self.interlinear
+        import pylab as plt
+        from numpy.random import normal
+	#gaussian_numbers = normal(size=1000)
+	#print gaussian_numbers
+	bins_values = range(0,105,5)
+        #plt.hist(vpm10,bins=bins_values,normed=1,histtype='bar')
+        #plt.hist(vpm10,bins=bins_values)
+        #n,bins,patches = plt.hist(vpm10,bins=bins_values)
+	plt.figure()
+	n,xout,patches = plt.hist(vpm10,bins=bins_values)
+	#n,xout,patches = plt.hist(vpm10,bins=20)
+	print "n=" ,n, "sum=",sum(n), "len(n)=", len(n)
+	print "xout=" ,xout, "len(xout)=", len(xout)
+        print [float(number)/sum(n) for number in n]
+        plt.title("Histogramme PM10 - 2012")
+        plt.xlabel("Valeur")
+        plt.ylabel("Nombre de valeurs par intervalle")
+        plt.show()
 
 
-        # 2ème figure
-
-        self.canvas.draw()
-
+        
         
     def _on_previous(self, evt):
         """ Parcourir la liste """

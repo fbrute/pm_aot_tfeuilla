@@ -63,7 +63,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         #setattr(self,'datajours', getattr(canvas.GetParent(),'datajours'))
         for name in dir(canvas.GetParent()):
 	    #print "name= :", name
-            if name in ["datayear","vg0","vg0_2","year","nyear","month","day","nday","pm10","aot1020"]:
+            if name in ["datayear","vg0","vg0_2","year","month","day","nday","pm10","aot1020"]:
                 setattr(self,name,getattr(canvas.GetParent(),name))
 	
        
@@ -90,7 +90,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         """ Init months  """
 	self.diryear={}
 
-	self.datayear = range(2005,2013)
+	self.datayear = range(2009,2013)
 
         for nyear in list(self.datayear):
             self.diryear[self.get_annee_en_clair(nyear)] = nyear
@@ -99,11 +99,10 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         keys_sort = self.diryear.keys()
         keys_sort.sort()
 
-	self.premyear = self.datayear[0]
-	self.deryear = self.datayear[len(self.datayear)-1]
-        #self.nyear = 0 
-        self.nyear = self.premyear
-        self.compteuryear = 0 
+	self.premmois = self.datayear[0]
+	self.dermois = self.datayear[len(self.datayear)-1]
+        self.nyear = 0 
+        self.compteurmois = 0 
  
 
     def get_jour_en_clair(self,njour):
@@ -168,7 +167,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
             indice = 0
             for mois in self.datayear:
                 if mois == self.nyear:
-                    self.compteuryear = indice 
+                    self.compteurmois = indice 
                 indice +=1
         else:
             return
@@ -188,11 +187,11 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         return compress(equal(self.vg0_2[:,self.month],nmonth),self.vg0_2,0)
 
     def getvg0_year(self,nyear):
-        """Select a year of data """
+        """Select a month of data """
         return compress(equal(self.vg0[:,self.year],nyear),self.vg0,0)
 
     def getvg0_2_year(self,nyear):
-        """Select a year of data """
+        """Select a month of data """
         return compress(equal(self.vg0_2[:,self.year],nyear),self.vg0_2,0)
 
 
@@ -215,18 +214,17 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         ax.clear()
         ax.set_xlabel('Jour',fontsize=14)
 
-        ax.set_title('AOT*100 (magenta) et PM10 (bleu) - Annee %s ' % (self.nyear) ,fontsize=16)
+        ax.set_title('AOT*100 (vert) et PM10 (bleu) - Annee %s ' % (self.nyear) ,fontsize=16)
 
         # Print PM10 
-	#if size(vg0n_2) > 0:
-	#	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10],color='blue', 
-	#		markersize=12,linestyle='-')
-
-	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10], 'b.', markersize=12)
+	if size(self.vg0_2) > 0:
+		ax.plot(self.vg0_2[:,self.nday],self.vg0_2[:,self.pm10],color='blue', 
+			markersize=12,linestyle='-')
 
 	# Print aot1020
-	if size(vg0n) > 0:
-		ax.plot(vg0n[:,self.nday],vg0n[:,self.aot1020]*100, 'm.', markersize=12)
+	if size(self.vg0) > 0:
+		ax.plot(self.vg0[:,self.nday],self.vg0[:,self.aot1020]*100,color='green',
+			markersize=12,linestyle='-')
 
 
 	ax.grid(b='true', which='major',color='black',linestyle='-',linewidth=0.5)
@@ -242,21 +240,21 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         
     def _on_previous(self, evt):
         """ Parcourir la liste """
-        if self.nyear == self.premyear:
+        if self.nyear == self.premmois:
             return
         else:
-            self.compteuryear -= 1
-            self.nyear = self.datayear[self.compteuryear] 
+            self.compteurmois -= 1
+            self.nyear = self.datayear[self.compteurmois] 
             self.draw()
         evt.Skip()
 
     def _on_next(self, evt):
         """ Parcourir la liste """
-        if self.nyear == self.deryear:
+        if self.nyear == self.dermois:
             return
         else:
-            self.compteuryear += 1
-            self.nyear = self.datayear[self.compteuryear] 
+            self.compteurmois += 1
+            self.nyear = self.datayear[self.compteurmois] 
             self.draw()
         evt.Skip()
 
@@ -484,7 +482,7 @@ class CanvasFrame(wx.Frame):
         from numpy import *
         from pylab import *
         #self.vg0 = vg0 = load("g0.txt",comments="#", delimiter=",") plante le 08/01/2013
-        self.vg0 = vg0 = mlab.load("aot.txt",comments="#", delimiter=",")
+        self.vg0 = vg0 = mlab.load("aotv20.txt",comments="#", delimiter=",")
         self.vg0_2 = vg0_2 = mlab.load("pm.txt",comments="#", delimiter=",")
 
 
@@ -495,8 +493,8 @@ class CanvasFrame(wx.Frame):
 	print sys.path
 
         from dayfromdate import dayfromdate 
-        self.anneedeb = self.Config.get("anneesv15","anneedeb")
-        self.anneefin = self.Config.get("anneesv15","anneefin")
+        self.anneedeb = self.Config.get("annees","anneedeb")
+        self.anneefin = self.Config.get("annees","anneefin")
 
         self.vg0 = vg0
 
