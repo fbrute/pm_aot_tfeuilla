@@ -5,6 +5,9 @@ que nous pourrons comparer avec les courbes de rayonnement obtenues par le
 traitement des données obtenues par l'inra
 
 """
+import wxversion
+wxversion.select("2.8-msw-unicode'")
+import wx
 
 import os, sys, string
 #from flatten import flatten
@@ -102,7 +105,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         tot_array_data3 = array([])
         # Colonnes du tableau, tot_array_data
         self.ntyear, self.ntmonth, self.ntday,self.ntjul_day, self.ntpm10,self.ntaot1020 = range(6) 
-        self.tot_array_data3 = mlab.load("aot_pm_daily.txt",comments="#", delimiter=",")
+        self.tot_array_data3 = mlab.load("aot_pm_daily_2012_sept_dec.txt",comments="#", delimiter=",")
 	# Année à garder
 	self.nyear = 2012
 	# Mois à garder : mars à juillet
@@ -167,7 +170,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         vpm10 = self.aot_pm[:,self.ntpm10]
         #ax.plot(self.tot_array_data3[:,self.ntaot1020]*100,self.tot_array_data3[:,self.ntpm10],'m.')
 	#if size(vaot1020)==0  or  size(vpm10)==0
-	#if size(vaot1020) == 0 : return
+	if size(vaot1020) == 0 : return
 	ax.plot(vaot1020,vpm10,'m.')
 	#print "size(self.tot.array_data3))", len(self.aot_pm[:,self.ntaot1020])
 	print "size(self.tot.array_data3))", size(self.tot_array_data3) 
@@ -178,6 +181,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         svaot1020 = sort(vaot1020)
 	svpm10 = -sort(-vpm10)
         pente, origine, coeffreg = stats.linregress(vaot1020,vpm10)[:3]
+	ax.text(ax.x,50,("Mois:  %d a %d" % (self.nt_month_deb, self.nt_month_fin)))
 	ax.text(ax.x,40,("nombre de points = %d" % len(vaot1020)))
 	ax.text(ax.x,20,("origine = %f" % origine))
 	ax.text(ax.x,10,("coeffreg = %f" % coeffreg))
@@ -187,7 +191,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 
         pente = pente * 100.0
 	ax.text(ax.x,30,("pente = %f" % pente))
-        ax.set_title("PM10 fonction de l' AOT1020*100 (%d,v15 apres selection)" % self.nyear,fontsize=8)
+        ax.set_title("PM10 fonction de l' AOT1020*100 (%d,v15 avant selection)" % self.nyear,fontsize=8)
 	print "pente=%f" % pente
 	print "coeff=%f" % coeffreg 
 	print "origine=%f" % origine 
@@ -231,7 +235,7 @@ class CanvasFrame(wx.Frame):
         wx.Frame.__init__(self,None,-1,
                          'wx_py_aot_pm10_cmp',size=(550,350))
 
-        self.SetBackgroundColour(wx.NamedColor("WHITE"))
+        #self.SetBackgroundColour(wx.NamedColor("WHITE"))
 
         self.figure = Figure(figsize=(5,4), dpi=100)
         #self.figure.clf()

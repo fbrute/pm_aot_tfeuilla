@@ -99,7 +99,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         keys_sort = self.diryear.keys()
         keys_sort.sort()
 
-	self.premyear = self.datayear[0]
+	self.premyear = 2012 
 	self.deryear = self.datayear[len(self.datayear)-1]
         #self.nyear = 0 
         self.nyear = self.premyear
@@ -215,21 +215,29 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         ax.clear()
         ax.set_xlabel('Jour',fontsize=14)
 
-        ax.set_title('AOT*100 (magenta) et PM10 (bleu) - Annee %s ' % (self.nyear) ,fontsize=16)
+        ax.set_title('PM10 - Annee %s ' % (self.nyear) ,fontsize=16)
 
         # Print PM10 
 	#if size(vg0n_2) > 0:
 	#	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10],color='blue', 
 	#		markersize=12,linestyle='-')
 
-	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10],color='blue', 
-			markersize=12,linestyle='-')
+	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10], 'b-', markersize=12)
+
+
+	ax.set_xticks([0,31,59,90,120,151,181,212,243,273,304,334])
+	xticklabels = ['janvier','fevrier','mars','avril','mai','juin',
+			'juillet','aout','septembre','octobre','novembre','decembre']
+
+	ax.set_xticklabels(xticklabels,rotation=0, size=12,horizontalalignment='left')
 
 	# Print aot1020
-	if size(vg0n) > 0:
-		ax.plot(vg0n[:,self.nday],vg0n[:,self.aot1020]*100,color='magenta',
-			markersize=12,linestyle='-')
+	#if size(vg0n) > 0:
+	#	ax.plot(vg0n[:,self.nday],vg0n[:,self.aot1020]*100, 'm.', markersize=12)
 
+
+        print self.canvas.figure.gca
+        print ax
 
 	ax.grid(b='true', which='major',color='black',linestyle='-',linewidth=0.5)
 
@@ -241,6 +249,15 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         self.canvas.draw()
 
 
+    def get_numday_of_month_beginning (self,evt):
+	""" Trouver le numéro du premier jour de chaque mois
+	Année 2012, bissectile """
+
+	dict_months = {'janvier':31,'février':28,'mars':31,'avril':30,'mai':31,'juin':30,
+	'juillet':31,'aout':31,'septembre':30,'octobre':31,'novembre':30,'décembre':31}
+	ar_months = [31,28,31,30,31,30,31,31,30,31,30,31]
+	deb_janvier = 1
+	#deb_février = dict_months['janvier'] 
         
     def _on_previous(self, evt):
         """ Parcourir la liste """
@@ -370,7 +387,7 @@ class CanvasFrame(wx.Frame):
         wx.Frame.__init__(self,None,-1,
                          'CanvasFrame',size=(550,350))
 
-        self.SetBackgroundColour(wx.NamedColor("WHITE"))
+        #self.SetBackgroundColour(wx.NamedColor("WHITE"))
 
         self.figure = Figure(figsize=(5,4), dpi=100)
         self.initdir = "d:\\dvpt\\pm_aot_tfeuilla\\gen"
@@ -486,7 +503,7 @@ class CanvasFrame(wx.Frame):
         from numpy import *
         from pylab import *
         #self.vg0 = vg0 = load("g0.txt",comments="#", delimiter=",") plante le 08/01/2013
-        self.vg0 = vg0 = []
+        self.vg0 = vg0 = mlab.load("aot_2012.txt",comments="#", delimiter=",")
         self.vg0_2 = vg0_2 = mlab.load("pm10_2012_24h.txt",comments="#", delimiter=",")
 
 

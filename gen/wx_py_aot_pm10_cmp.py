@@ -104,10 +104,10 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         self.ntyear, self.ntmonth, self.ntday,self.ntjul_day, self.ntpm10,self.ntaot1020 = range(6) 
         self.tot_array_data3 = mlab.load("aot_pm_daily.txt",comments="#", delimiter=",")
 	# Année à garder
-	self.nyear = 2010
+	self.nyear = 2012
 	# Mois à garder : mars à juillet
-	self.nt_month_deb = 5
-	self.nt_month_fin = 9 
+	self.nt_month_deb = 9
+	self.nt_month_fin = 12 
 
 
     def get_jour_en_clair(self,njour):

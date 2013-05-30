@@ -222,13 +222,15 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 	#	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10],color='blue', 
 	#		markersize=12,linestyle='-')
 
-	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10],color='blue', 
-			markersize=12,linestyle='-')
+	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10], 'b.', markersize=12)
 
 	# Print aot1020
-	if size(vg0n) > 0:
-		ax.plot(vg0n[:,self.nday],vg0n[:,self.aot1020]*100,color='magenta',
-			markersize=12,linestyle='-')
+	if size(vg0n_2) > 0:
+		ax.plot(vg0n[:,self.nday],vg0n[:,self.aot1020]*100, 'm.', markersize=12)
+	ax.x = 300
+
+	ax.text(ax.x,60,("sept. a dec. 2006"))
+	ax.text(ax.x,50,("nombre de points = %d" % size(vg0n_2)))
 
 
 	ax.grid(b='true', which='major',color='black',linestyle='-',linewidth=0.5)
@@ -486,8 +488,8 @@ class CanvasFrame(wx.Frame):
         from numpy import *
         from pylab import *
         #self.vg0 = vg0 = load("g0.txt",comments="#", delimiter=",") plante le 08/01/2013
-        self.vg0 = vg0 = []
-        self.vg0_2 = vg0_2 = mlab.load("pm10_2012_24h.txt",comments="#", delimiter=",")
+        self.vg0 = vg0 = mlab.load("aot_2006_sep_dec.txt",comments="#", delimiter=",")
+        self.vg0_2 = vg0_2 = mlab.load("pm_2006_sep_dec.txt",comments="#", delimiter=",")
 
 
 

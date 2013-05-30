@@ -5,11 +5,28 @@ que nous pourrons comparer avec les courbes de rayonnement obtenues par le
 traitement des données obtenues par l'inra
 
 """
+import wxversion
+wxversion.select("2.8-msw-unicode'")
+import wx
 
 import os, sys, string
 #from flatten import flatten
 #from Numeric import *
 from numpy import *
+from numpy import *
+from pylab import *
+
+
+
+# comment out the following to use wx rather than wxagg
+import matplotlib
+matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg 
+
+from matplotlib.backends.backend_wx import _load_bitmap
+from matplotlib.figure import Figure
+#from matplotlib.numerix.mlab import rand (plante le 08/01/2013)
 dirtoconv = os.path.join("D:\\", "dvpt", "pm_aot_tfeuilla","gen")
 os.chdir(dirtoconv)
 
@@ -27,22 +44,6 @@ class selmat:
 # Les données du photomètre doivent exister pour pouvoir les comparer
 # ce sont donc ces jours seulement que nous considérerons
 datayears = range(2005,2013) 
-
-from numpy import *
-from pylab import *
-
-# comment out the following to use wx rather than wxagg
-import matplotlib
-matplotlib.use('WXAgg')
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
-from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg 
-
-from matplotlib.backends.backend_wx import _load_bitmap
-from matplotlib.figure import Figure
-#from matplotlib.numerix.mlab import rand (plante le 08/01/2013)
-import wx
-
-
 
 # Inspiré de embedding_in_wx4.py
 class MyNavigationToolbar(NavigationToolbar2WxAgg):
@@ -118,15 +119,19 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 
     def _on_liste(self, evt):
         """ On choisit le jour à tracer à partir d'une liste """
+        self.nyear = 2012 
+        self.draw()
+	return
 
         dlg = wx.SingleChoiceDialog(
-                self, 'Choisir une année', 'Veuille choisir une année',
-                datayears,
+                self, 'Choisir une annee', 'Veuille choisir une annee',
+		[str(year) for year in datayears],
                 wx.CHOICEDLG_STYLE
                 )
         if dlg.ShowModal() == wx.ID_OK:
             #njour = string.atof(dlg.GetStringSelection())
-            self.nyear = self.diryears[dlg.GetStringSelection()]
+	    print dlg.GetStringSelection()
+            self.nyear = self.diryears[int(dlg.GetStringSelection())]
         else:
             return
         dlg.Destroy()
@@ -167,7 +172,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
         vpm10 = self.aot_pm[:,self.ntpm10]
         #ax.plot(self.tot_array_data3[:,self.ntaot1020]*100,self.tot_array_data3[:,self.ntpm10],'m.')
 	#if size(vaot1020)==0  or  size(vpm10)==0
-	#if size(vaot1020) == 0 : return
+	if size(vaot1020) == 0 : return
 	ax.plot(vaot1020,vpm10,'m.')
 	#print "size(self.tot.array_data3))", len(self.aot_pm[:,self.ntaot1020])
 	print "size(self.tot.array_data3))", size(self.tot_array_data3) 
@@ -216,7 +221,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
             #self.njour += 1
             self.compteuryear += 1
             print "self.compteuryear=", self.compteuryear
-            print "datayears=", datayears 
+            #print "datayears=", datayears 
             self.nyear = datayears[self.compteuryear] 
             self.draw()
         evt.Skip()

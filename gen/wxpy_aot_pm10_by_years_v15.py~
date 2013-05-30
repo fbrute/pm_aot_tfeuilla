@@ -486,8 +486,8 @@ class CanvasFrame(wx.Frame):
         from numpy import *
         from pylab import *
         #self.vg0 = vg0 = load("g0.txt",comments="#", delimiter=",") plante le 08/01/2013
-        self.vg0 = vg0 = []
-        self.vg0_2 = vg0_2 = mlab.load("pm10_2012_24h.txt",comments="#", delimiter=",")
+        self.vg0 = vg0 = mlab.load("aotv15.txt",comments="#", delimiter=",")
+        self.vg0_2 = vg0_2 = mlab.load("pm.txt",comments="#", delimiter=",")
 
 
 

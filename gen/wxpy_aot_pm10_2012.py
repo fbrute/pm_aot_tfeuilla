@@ -7,6 +7,10 @@ de la présence de poussières, sur une année
 import os, sys, string
 # utiliser pycrust
 
+import wxversion
+wxversion.select("2.8-msw-unicode'")
+import wx
+
 from wx.py.shell import ShellFrame
 from wx.py.filling import FillingFrame
 
@@ -102,6 +106,7 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 	self.premyear = self.datayear[0]
 	self.deryear = self.datayear[len(self.datayear)-1]
         #self.nyear = 0 
+        self.nyear = 2012 
         self.nyear = self.premyear
         self.compteuryear = 0 
  
@@ -222,16 +227,30 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 	#	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10],color='blue', 
 	#		markersize=12,linestyle='-')
 
-	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10],color='blue', 
-			markersize=12,linestyle='-')
+	ax.plot(vg0n_2[:,self.nday],vg0n_2[:,self.pm10], 'b.', markersize=12)
 
 	# Print aot1020
 	if size(vg0n) > 0:
-		ax.plot(vg0n[:,self.nday],vg0n[:,self.aot1020]*100,color='magenta',
-			markersize=12,linestyle='-')
+		ax.plot(vg0n[:,self.nday],vg0n[:,self.aot1020]*100, 'm.', markersize=12)
 
+	ax.set_xticks([0,31,59,90,120,151,181])
 
-	ax.grid(b='true', which='major',color='black',linestyle='-',linewidth=0.5)
+	xticklabels = ['janvier','fevrier','mars','avril','mai','juin',
+			'juillet']
+
+	ax.set_xticklabels(xticklabels,rotation=0, size=12,horizontalalignment='left')
+
+	#ax.set_xticklabels(xticklabels,rotation=0, size=12,horizontalalignment='left')
+	#ax.set_xticks([x for x in vg0n_2[:,self.nday]])
+	#xticklabels = ([str(int(x)) for x in vg0n_2[:,self.nday]])
+	#gjc = self.get_jour_en_clair
+	#xticklabels = ([gjc(x)[0:len(gjc(x))-5] for x in vg0n_2[:,self.nday]])
+	#xticklabels = ax.get_xticklabels()
+	#print xticklabels
+	#ax.set_xticklabels(xticklabels,rotation='vertical', size='x-small')
+	#ax.set_xticklabels(xticklabels,rotation=70, size='x-small')
+	#ax.set_xticklabels(xticklabels,rotation=45, size=5,stretch='extra-condensed')
+	ax.grid(b='true', which='both',color='black',linestyle='-',linewidth=0.5)
 
 	#ax.set_xticks(range(32)[1:32])
 
@@ -240,8 +259,6 @@ class MyNavigationToolbar(NavigationToolbar2WxAgg):
 	#print dir(ax)
         self.canvas.draw()
 
-
-        
     def _on_previous(self, evt):
         """ Parcourir la liste """
         if self.nyear == self.premyear:
@@ -486,8 +503,8 @@ class CanvasFrame(wx.Frame):
         from numpy import *
         from pylab import *
         #self.vg0 = vg0 = load("g0.txt",comments="#", delimiter=",") plante le 08/01/2013
-        self.vg0 = vg0 = []
-        self.vg0_2 = vg0_2 = mlab.load("pm10_2012_24h.txt",comments="#", delimiter=",")
+        self.vg0 = vg0 = mlab.load("aot_2012.txt",comments="#", delimiter=",")
+        self.vg0_2 = vg0_2 = mlab.load("pm_2012.txt",comments="#", delimiter=",")
 
 
 
